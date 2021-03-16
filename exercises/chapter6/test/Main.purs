@@ -16,7 +16,6 @@ main :: Effect Unit
 main =
   runTest do
     runChapterExamples
-    {-  Move this block comment starting point to enable more tests
     suite "Exercise Group - Show Me" do
       test "Exercise - Show Point" do
         Assert.equal "(1.0, 2.0)"
@@ -251,7 +250,6 @@ main =
             $ hash
             $ Hour 14
 
--}
 runChapterExamples :: TestSuite
 runChapterExamples =
   test "Todo for book maintainers - Add tests for chapter examples" do
