@@ -10,6 +10,7 @@ import Effect.Aff (Aff, Error, attempt)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile, writeTextFile)
 import Node.Path (FilePath)
+import Test.HTTP (getUrl)
 
 {- Asynchronous PureScript -}
 
@@ -32,3 +33,11 @@ countCharacters :: FilePath -> Aff (Either Error Int)
 countCharacters file = attempt do
   content <- readTextFile UTF8 file
   pure $ length content
+
+{- An HTTP client -}
+
+-- exercise 1
+writeGet :: String -> String -> Aff Unit
+writeGet url file = do
+  str <- getUrl url
+  writeTextFile UTF8 file str
