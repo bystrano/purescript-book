@@ -3,8 +3,8 @@ module Main where
 import Prelude
 
 import Data.AddressBook (PhoneNumber, examplePerson)
-import Data.AddressBook.Validation (Errors, validatePerson')
-import Data.Array (mapWithIndex, updateAt)
+import Data.AddressBook.Validation (Errors, Field(..), ValidationError(..), validatePerson')
+import Data.Array (filter, mapWithIndex, updateAt)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
@@ -21,21 +21,17 @@ import Web.HTML (window)
 import Web.HTML.HTMLDocument (toNonElementParentNode)
 import Web.HTML.Window (document)
 
--- Note that there's a Purty formatting bug that
--- adds an unwanted blank line
--- https://gitlab.com/joneshf/purty/issues/77
-renderValidationErrors :: Errors -> Array R.JSX
-renderValidationErrors [] = []
-renderValidationErrors xs =
+renderError :: Field -> Errors -> R.JSX
+renderError ftype errors =
   let
-    renderError :: String -> R.JSX
-    renderError err = D.li_ [ D.text err ]
+    typeMatches :: Field -> ValidationError -> Boolean
+    typeMatches ft (ValidationError s t) = ft == t
+    matchingErrors = filter (typeMatches ftype) errors
   in
-    [ D.div
-        { className: "alert alert-danger row"
-        , children: [ D.ul_ (map renderError xs) ]
-        }
-    ]
+   D.div_ (map
+           (\(ValidationError msg _) ->
+             D.div { className: "alert alert-danger", children: [ D.text msg ] })
+           matchingErrors)
 
 -- Helper function to render a single form field with an
 -- event handler to update
@@ -88,11 +84,13 @@ mkAddressBookApp =
       -- helper-function to render a single phone number at a given index
       renderPhoneNumber :: Int -> PhoneNumber -> R.JSX
       renderPhoneNumber index phone =
-        formField
-          (show phone."type")
-          "XXX-XXX-XXXX"
-          phone.number
-          (\s -> setPerson _ { phones = updateAt' index phone { number = s } person.phones })
+        D.div_ [ renderError (PhoneField phone."type") errors
+               , formField
+                 (show phone."type")
+                 "XXX-XXX-XXXX"
+                 phone.number
+                 (\s -> setPerson _ { phones = updateAt' index phone { number = s } person.phones })
+               ]
 
       -- helper-function to render all phone numbers
       renderPhoneNumbers :: Array R.JSX
@@ -101,29 +99,33 @@ mkAddressBookApp =
       $ D.div
           { className: "container"
           , children:
-              renderValidationErrors errors
-                <> [ D.div
-                      { className: "row"
-                      , children:
-                          [ D.form_
-                              $ [ D.h3_ [ D.text "Basic Information" ]
-                                , formField "First Name" "First Name" person.firstName \s ->
-                                    setPerson _ { firstName = s }
-                                , formField "Last Name" "Last Name" person.lastName \s ->
-                                    setPerson _ { lastName = s }
-                                , D.h3_ [ D.text "Address" ]
-                                , formField "Street" "Street" person.homeAddress.street \s ->
-                                    setPerson _ { homeAddress { street = s } }
-                                , formField "City" "City" person.homeAddress.city \s ->
-                                    setPerson _ { homeAddress { city = s } }
-                                , formField "State" "State" person.homeAddress.state \s ->
-                                    setPerson _ { homeAddress { state = s } }
-                                , D.h3_ [ D.text "Contact Information" ]
-                                ]
-                              <> renderPhoneNumbers
-                          ]
-                      }
-                  ]
+            [ D.div
+              { className: "row"
+              , children:
+                [ D.form_
+                  $ [ D.h3_ [ D.text "Basic Information" ]
+                    , renderError FirstNameField errors
+                    , formField "First Name" "First Name" person.firstName \s ->
+                       setPerson _ { firstName = s }
+                    , renderError LastNameField errors
+                    , formField "Last Name" "Last Name" person.lastName \s ->
+                       setPerson _ { lastName = s }
+                    , D.h3_ [ D.text "Address" ]
+                    , renderError StreetField errors
+                    , formField "Street" "Street" person.homeAddress.street \s ->
+                       setPerson _ { homeAddress { street = s } }
+                    , renderError CityField errors
+                    , formField "City" "City" person.homeAddress.city \s ->
+                       setPerson _ { homeAddress { city = s } }
+                    , renderError StateField errors
+                    , formField "State" "State" person.homeAddress.state \s ->
+                       setPerson _ { homeAddress { state = s } }
+                    , D.h3_ [ D.text "Contact Information" ]
+                    ]
+                  <> renderPhoneNumbers
+                ]
+              }
+            ]
           }
 
 main :: Effect Unit
