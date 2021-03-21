@@ -25,6 +25,7 @@ main :: Effect Unit
 main =
   runTest do
     runChapterExamples
+{-  Move this block comment starting point to enable more tests
     suite "Exercise Group - Calling JavaScript" do
       suite "Exercise - volumeFn" do
         test "1 2 3" do
@@ -200,7 +201,6 @@ main =
             (decoded :: Either _ IntOrString) = decodeJson $ encodeJson 1.5
           Assert.assert "Got a Right, should be Left" $ isLeft decoded
 
-{-  Move this block comment starting point to enable more tests
 -}
 -- Put in ascending order by real, then imag components
 orderCpx :: Pair Complex -> Pair Complex
