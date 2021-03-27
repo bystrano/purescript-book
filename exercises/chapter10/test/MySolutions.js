@@ -41,3 +41,52 @@ exports.quadraticRootsImpl = (pair) => (a) => (b) => (c) => {
     });
   }
 };
+
+exports.valuesOfMapJson = (json) => {
+  const m = new Map(json);
+
+  return Array.from(m.values());
+};
+
+exports.quadraticRootsSetImpl = (a) => (b) => (c) => {
+  const discriminant = b * b - 4 * a * c;
+  return discriminant >= 0
+    ? [
+        {
+          real: (-b + Math.sqrt(discriminant)) / (2 * a),
+          imag: 0,
+        },
+        {
+          real: (-b - Math.sqrt(discriminant)) / (2 * a),
+          imag: 0,
+        },
+      ]
+    : [
+        {
+          real: -b / (2 * a),
+          imag: Math.sqrt(-discriminant) / (2 * a),
+        },
+        {
+          real: -b / (2 * a),
+          imag: -Math.sqrt(-discriminant) / (2 * a),
+        },
+      ];
+};
+
+exports.quadraticRootsSafeJson = (poly) => {
+  let { a, b, c } = poly;
+  let radicand = b * b - 4 * a * c;
+  if (radicand >= 0) {
+    let rt = Math.sqrt(radicand);
+    return [
+      { real: (-b + rt) / (2 * a), imag: 0 },
+      { real: (-b - rt) / (2 * a), imag: 0 },
+    ];
+  } else {
+    let rt = Math.sqrt(-radicand);
+    return [
+      { real: -b / (2 * a), imag: rt / (2 * a) },
+      { real: -b / (2 * a), imag: -rt / (2 * a) },
+    ];
+  }
+};
