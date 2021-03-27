@@ -11,10 +11,10 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.Alert (alert)
+import Effect.Alert (alert, confirm)
 import Effect.Console (log)
 import Effect.Exception (throw)
-import Effect.Storage (getItem, setItem)
+import Effect.Storage (getItem, removeItem, setItem)
 import React.Basic.DOM as D
 import React.Basic.DOM.Events (targetValue)
 import React.Basic.Events (handler, handler_)
@@ -112,9 +112,18 @@ mkAddressBookApp =
             setItem "person" $ stringify $ encodeJson validPerson
             log "Saved"
 
-      -- helper-function to render saveButton
-      saveButton :: R.JSX
-      saveButton =
+      reset :: Effect Unit
+      reset = do
+        confirmed <- confirm "Are you sure ?"
+        if not confirmed
+        then do log "Aborted"
+        else do
+          removeItem "person"
+          log "Local data deleted"
+
+      -- helper-function to render buttons
+      buttons :: R.JSX
+      buttons =
         D.label
           { className: "form-group row col-form-label"
           , children:
@@ -122,6 +131,11 @@ mkAddressBookApp =
                   { className: "btn-primary btn"
                   , onClick: handler_ validateAndSave
                   , children: [ D.text "Save" ]
+                  }
+              , D.button
+                  { className: "btn-secondary btn"
+                  , onClick: handler_ reset
+                  , children: [ D.text "Reset" ]
                   }
               ]
           }
@@ -152,7 +166,7 @@ mkAddressBookApp =
                           ]
                       }
                   ]
-                <> [ saveButton ]
+                <> [ buttons ]
           }
 
 processItem :: Json -> Either String Person
