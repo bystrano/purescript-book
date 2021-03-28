@@ -20,12 +20,11 @@ main :: Effect Unit
 main =
   runTest do
     test "" success
-    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - The State Monad" do
       suite "testParens" do
-        let 
+        let
           runTestParens :: Boolean -> String -> TestSuite
-          runTestParens expected str = 
+          runTestParens expected str =
             test testName do
               Assert.equal expected $ testParens str
             where testName = "str = \"" <> str <> "\""
@@ -35,6 +34,7 @@ main =
         runTestParens false ")"
         runTestParens false "(()()"
         runTestParens false ")("
+    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - The Reader Monad" do
       suite "indents" do
         let
