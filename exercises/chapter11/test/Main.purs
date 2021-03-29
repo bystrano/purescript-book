@@ -34,7 +34,6 @@ main =
         runTestParens false ")"
         runTestParens false "(()()"
         runTestParens false ")("
-    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - The Reader Monad" do
       suite "indents" do
         let
@@ -53,6 +52,7 @@ main =
                 , indent $ line "I am even more indented"
                 ]
               ]
+    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - The Writer Monad" do
       suite "sumArrayWriter" do
         test "should sum arrays" do
