@@ -52,7 +52,6 @@ main =
                 , indent $ line "I am even more indented"
                 ]
               ]
-    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - The Writer Monad" do
       suite "sumArrayWriter" do
         test "should sum arrays" do
@@ -73,6 +72,7 @@ main =
         test "c = 15" do
           Assert.equal expected_15
             $ collatz 15
+    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - Monad Transformers" do
       suite "parser" do
         let
