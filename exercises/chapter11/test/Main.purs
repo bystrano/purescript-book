@@ -72,7 +72,6 @@ main =
         test "c = 15" do
           Assert.equal expected_15
             $ collatz 15
-    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - Monad Transformers" do
       suite "parser" do
         let
@@ -99,5 +98,3 @@ main =
                   line' "So am I"
                   indent' $ do
                     line' "I am even more indented"
-
--}

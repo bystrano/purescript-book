@@ -2,13 +2,19 @@ module Test.MySolutions where
 
 import Prelude
 
-import Control.Monad.Reader (Reader, ask, local, runReader)
-import Control.Monad.State (State, evalState, execState, get, gets, modify)
-import Control.Monad.Writer (Writer, runWriter, tell)
+import Control.Monad.Error.Class (throwError)
+import Control.Monad.Except (ExceptT, lift, runExceptT)
+import Control.Monad.Reader (Reader, ReaderT, ask, local, runReader, runReaderT)
+import Control.Monad.State (State, StateT, evalState, execState, get, gets, modify, put, runStateT)
+import Control.Monad.Writer (Writer, WriterT, execWriterT, runWriter, runWriterT, tell)
+import Data.Either (Either)
+import Data.Identity (Identity)
 import Data.Int (even)
+import Data.Maybe (Maybe(..))
 import Data.Monoid (power)
 import Data.Monoid.Additive (Additive(..))
-import Data.String (joinWith)
+import Data.Newtype (unwrap)
+import Data.String (Pattern(..), joinWith, stripPrefix)
 import Data.String.CodeUnits (toCharArray)
 import Data.Traversable (sequence, traverse, traverse_)
 import Data.Tuple (Tuple(..), fst)
@@ -97,3 +103,49 @@ collatz c = unwrapTuple $ runWriter $ collatz' (0 /\ c) where
          m -> collatz' $ (s + 1) /\ collatzInt m
 
   unwrapTuple (Tuple a b) = Tuple (fst a) b
+
+{- Monad Transformers -}
+
+-- exercise 1
+safeDivide :: Number -> Number -> ExceptT String Identity Number
+safeDivide a b = do
+  case b of
+    0.0 -> throwError "divison by 0 !"
+    b'  -> pure $ a / b'
+
+-- exercise 2
+type Errors = Array String
+
+type Log = Array String
+
+type Parser = StateT String (WriterT Log (ExceptT Errors Identity))
+
+runParser :: forall a. Parser a -> String -> Either Errors (Tuple (Tuple a String) Log)
+runParser p s = unwrap $ runExceptT $ runWriterT $ runStateT p s
+
+string :: String -> Parser String
+string prefix = do
+  s <- get
+  lift $ tell ["The state is " <> s]
+  case stripPrefix (Pattern prefix) s of
+    Nothing     -> lift $ lift $ throwError ["Could not parse"]
+    Just suffix -> do
+      put suffix
+      pure prefix
+
+-- exercise 3
+type Doc' = (WriterT (Array String) (ReaderT Level Identity)) Unit
+
+render' :: Doc' -> String
+render' doc = joinWith "\n"
+              $ unwrap
+              $ flip runReaderT 0
+              $ execWriterT doc
+
+line' :: String -> Doc'
+line' str = do
+  level <- lift ask
+  tell [ power "  " level <> str ]
+
+indent' :: Doc' -> Doc'
+indent' = local $ (+) 1
