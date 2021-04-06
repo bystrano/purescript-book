@@ -103,10 +103,14 @@ game ["debug"] = do
       tell (L.singleton (show state))
     else throwError "Not running in debug mode."
 game ["cheat"] = do
-  GameState state <- get
-  put $ GameState state { items     = M.empty
-                        , inventory = S.union state.inventory
-                                      $ S.unions $ S.fromFoldable state.items
-                        }
+  GameEnvironment env <- ask
+  if env.cheatMode
+    then do
+      GameState state <- get
+      put $ GameState state { items     = M.empty
+                            , inventory = S.union state.inventory
+                                          $ S.unions $ S.fromFoldable state.items
+                            }
+    else throwError "Not running in cheat mode."
 game [] = pure unit
 game _  = throwError "I don't understand"
