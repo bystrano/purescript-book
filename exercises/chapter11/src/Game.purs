@@ -99,5 +99,11 @@ game ["debug"] = do
       state :: GameState <- get
       tell (L.singleton (show state))
     else tell (L.singleton "Not running in debug mode.")
+game ["cheat"] = do
+  GameState state <- get
+  put $ GameState state { items     = M.empty
+                        , inventory = S.union state.inventory
+                                      $ S.unions $ S.fromFoldable state.items
+                        }
 game [] = pure unit
 game _  = tell (L.singleton "I don't understand.")
