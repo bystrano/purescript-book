@@ -2,11 +2,13 @@ module Test.MySolutions where
 
 import Prelude
 
+import Control.Alternative ((<|>))
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Except (ExceptT, lift, runExceptT)
 import Control.Monad.Reader (Reader, ReaderT, ask, local, runReader, runReaderT)
 import Control.Monad.State (State, StateT, evalState, execState, get, gets, modify, put, runStateT)
 import Control.Monad.Writer (Writer, WriterT, execWriterT, runWriter, runWriterT, tell)
+import Data.Array (fold, some)
 import Data.Either (Either)
 import Data.Identity (Identity)
 import Data.Int (even)
@@ -126,9 +128,9 @@ runParser p s = unwrap $ runExceptT $ runWriterT $ runStateT p s
 string :: String -> Parser String
 string prefix = do
   s <- get
-  lift $ tell ["The state is " <> s]
+  tell ["The state is " <> s]
   case stripPrefix (Pattern prefix) s of
-    Nothing     -> lift $ lift $ throwError ["Could not parse"]
+    Nothing     -> throwError ["Could not parse"]
     Just suffix -> do
       put suffix
       pure prefix
@@ -149,3 +151,18 @@ line' str = do
 
 indent' :: Doc' -> Doc'
 indent' = local $ (+) 1
+
+{- Backtracking -}
+
+-- exercise 2
+aThenB :: Parser (Array String)
+aThenB = do
+  s1 <- string "a"
+  s2 <- some $ string "b"
+  pure $ [ s1 ] <> s2
+
+-- exercise 3
+aOrB :: Parser (Array String)
+aOrB = do
+  s <- some $ some (string "a") <|> some (string "b")
+  pure $ fold s

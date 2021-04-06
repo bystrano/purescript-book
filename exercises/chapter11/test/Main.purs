@@ -1,17 +1,16 @@
 module Test.Main where
 
-import Prelude
-
+import Prelude (Unit, discard, ($), (<>))
 import Test.MySolutions
 
-import Effect (Effect)
-import Control.Monad.Writer (runWriterT, execWriter)
 import Control.Monad.Except (runExceptT)
 import Control.Monad.State (runStateT)
+import Control.Monad.Writer (runWriterT, execWriter)
 import Data.Either (Either(..))
 import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
+import Effect (Effect)
 import Test.Unit (TestSuite, success, suite, test)
 import Test.Unit.Assert as Assert
 import Test.Unit.Main (runTest)
@@ -98,3 +97,31 @@ main =
                   line' "So am I"
                   indent' $ do
                     line' "I am even more indented"
+    suite "Exercises Group - Backtracking" do
+      suite "aThenB" do
+        let
+          runParser p s = unwrap $ runExceptT $ runWriterT $ runStateT p s
+        test "abbb" do
+          Assert.equal (Right (Tuple (Tuple ["a","b","b"] "") ["The state is abb","The state is bb","The state is b"]))
+            $ runParser aThenB "abb"
+        test "bbb" do
+          Assert.equal (Left ["Could not parse"])
+            $ runParser aThenB "bbb"
+        test "a" do
+          Assert.equal (Left ["Could not parse"])
+            $ runParser aThenB "a"
+      suite "aOrB" do
+        let
+          runParser p s = unwrap $ runExceptT $ runWriterT $ runStateT p s
+        test "abbb" do
+          Assert.equal (Right (Tuple (Tuple ["a","b","b"] "") ["The state is abb","The state is bb","The state is b"]))
+            $ runParser aOrB "abb"
+        test "ccd" do
+          Assert.equal (Left ["Could not parse","Could not parse"])
+            $ runParser aOrB "ccd"
+        test "a" do
+          Assert.equal (Right (Tuple (Tuple ["a"] "") ["The state is a"]))
+            $ runParser aOrB "a"
+        test "bbaa" do
+          Assert.equal (Right (Tuple (Tuple ["b","b","a","a"] "") ["The state is bbaa","The state is baa","The state is aa","The state is a"]))
+            $ runParser aOrB "bbaa"
