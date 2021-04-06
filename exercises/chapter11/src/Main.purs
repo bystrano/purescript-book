@@ -2,6 +2,7 @@ module Main where
 
 import Prelude
 
+import Control.Monad.Except (runExceptT)
 import Control.Monad.RWS (RWSResult(..), runRWS)
 import Data.Either (Either(..))
 import Data.Foldable (for_)
@@ -11,7 +12,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Data.String (split)
 import Effect (Effect)
-import Effect.Console (log)
+import Effect.Console (error, log)
 import Game (game)
 import Node.ReadLine as RL
 import Node.Yargs.Applicative (Y, runY, flag, yarg)
@@ -25,8 +26,11 @@ runGame env = do
   let
     lineHandler :: GameState -> String -> Effect Unit
     lineHandler currentState input = do
-      case runRWS (game (split (wrap " ") input)) env currentState of
-        RWSResult state _ written -> do
+      case runRWS (runExceptT $ game (split (wrap " ") input)) env currentState of
+        RWSResult state result written -> do
+          case result of
+            Left err -> error err
+            _        -> pure unit
           for_ written log
           RL.setLineHandler (lineHandler state) $ interface
       RL.prompt interface
