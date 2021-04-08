@@ -18,6 +18,7 @@ You can edit this file as you like.
   , "psci-support"
   , "random"
   , "refs"
+  , "tuples"
   , "web-dom"
   , "web-events"
   , "web-html"
