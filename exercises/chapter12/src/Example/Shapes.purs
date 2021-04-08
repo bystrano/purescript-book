@@ -7,6 +7,7 @@ import Data.Foldable (sequence_)
 import Data.Int (toNumber)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
+import Data.Unit (Unit)
 import Effect (Effect)
 import Graphics.Canvas (Context2D, arc, closePath, fillPath, getCanvasElementById, getContext2D, lineTo, moveTo, rect, setFillStyle, setStrokeStyle, strokePath)
 import Math as Math
@@ -80,7 +81,7 @@ main = void $ unsafePartial do
             , end: Math.tau / 2.0
             }
 
-  renderFunction ctx (\f -> { x: 600.0 - 500.0 * f, y: 600.0 - 500.0 * f * f }) 100
+  renderFunction ctx (\f -> { x: 600.0 - 500.0 * f, y: 600.0 - 500.0 * f * f }) 5
 
 -- exercise 3
 type Point = { x :: Number, y :: Number }
@@ -93,15 +94,19 @@ rotate xs = case head xs of
 toPairs :: forall a. Array a -> Array (Tuple a a)
 toPairs xs = zip xs $ rotate xs
 
-drawLine :: Context2D -> Tuple Point Point -> Effect Unit
-drawLine ctx (Tuple p1 p2) =
-  strokePath ctx $ do
-    moveTo ctx p1.x p1.y
-    lineTo ctx p2.x p2.y
-    closePath ctx
+line :: Context2D -> Tuple Point Point -> Effect Unit
+line ctx (Tuple p1 p2) = do
+  moveTo ctx p1.x p1.y
+  lineTo ctx p2.x p2.y
 
 renderPath :: Context2D -> Array Point -> Effect Unit
-renderPath ctx xs = sequence_ $ drawLine ctx <$> toPairs xs
+renderPath ctx xs = strokePath ctx $ sequence_ $ line ctx <$> toPairs xs
+
+renderFilledPath :: Context2D -> Array Point -> Effect Unit
+renderFilledPath ctx xs =
+  fillPath ctx $ do
+    sequence_ $ line ctx <$> toPairs xs
+    closePath ctx
 
 sample :: (Number -> Point) -> Int -> Array Point
 sample f n = f
